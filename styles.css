@@ -6,7 +6,7 @@
 }
 
 body {
-  font-family: "Arial", sans-serif;
+  font-family: "Poppins", serif;
   background-color: #f4f7fa;
   color: #333;
   display: flex;
@@ -14,6 +14,7 @@ body {
   align-items: center;
   height: 100vh;
   padding: 20px;
+  padding-top: 80px;
 }
 
 .container {
@@ -51,7 +52,36 @@ body {
   border-radius: 10px;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
 }
-
+.headButtons {
+  display: flex;
+  justify-content: space-between;
+}
+.upperBtn {
+  width: 5%;
+  margin: 10px;
+  padding: 10px;
+  font-size: 16px;
+  font-family: "Poppins", sans-serif;
+  font-weight: 400;
+  border: none;
+  border-radius: 20px;
+  text-align: center;
+  cursor: pointer;
+  background-color: #45a049;
+}
+.auditBtn {
+  width: 10%;
+  margin: 10px;
+  padding: 10px;
+  font-size: 16px;
+  font-family: "Poppins", sans-serif;
+  font-weight: 400;
+  border: none;
+  border-radius: 20px;
+  text-align: center;
+  cursor: pointer;
+  background-color: #45a049;
+}
 h1 {
   font-size: 2.5rem;
   color: #4caf50;
@@ -206,4 +236,35 @@ input[type="search"] {
   button {
     font-size: 14px;
   }
+}
+
+nav {
+  width: 100%;
+  padding: 10px 0;
+  background-color: #4caf50;
+  color: white;
+  text-align: center;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 1000;
+}
+
+nav h1 {
+  font-size: 1.8rem;
+  margin: 0;
+  line-height: 1.5;
+  color: white !important;
+}
+
+.form-container {
+  margin-top: 20px;
+  width: 100%;
+  max-width: 400px;
+  background-color: #fff;
+  padding: 20px;
+  border-radius: 10px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  text-align: center;
 }

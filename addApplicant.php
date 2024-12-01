@@ -1,7 +1,13 @@
 <?php
+session_start();
 include('core/dbConfig.php');
 
-$message ='';
+if (!isset($_SESSION['logged_in']) || $_SESSION['logged_in'] !== true) {
+    header('Location: login.php');
+    exit;
+}
+
+$message = '';
 $stmt = $pdo->query("SELECT * FROM departments");
 $departments = $stmt->fetchAll();
 
@@ -14,7 +20,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $gender = $_POST['gender'];
     $address = $_POST['address'];
     $departmentId = $_POST['department_id'];
-
 
     $stmt = $pdo->prepare("INSERT INTO doctors (first_name, last_name, email, phone_number, date_of_birth, gender, address, department_id) 
                            VALUES (:first_name, :last_name, :email, :phone_number, :date_of_birth, :gender, :address, :department_id)");
@@ -31,7 +36,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     ])) {
         $doctorId = $pdo->lastInsertId(); 
 
-
         $position = $_POST['position'];
         $coverLetter = $_POST['cover_letter'];
 
@@ -40,6 +44,20 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
         if ($stmt->execute(['doctor_id' => $doctorId, 'position' => $position, 'cover_letter' => $coverLetter])) {
             $message = "<div class='success-message'><p>Application successful!</p></div>";
+
+          
+            $action = "Added Applicant";
+            $addedBy = $_SESSION['username'];  
+            $userId = $_SESSION['user_id']; 
+            $details = "Added a new applicant: $firstName $lastName";
+
+            $logStmt = $pdo->prepare("INSERT INTO audit_log (action_type, user_id, added_by, details) VALUES (:action_type, :user_id, :added_by, :details)");
+            $logStmt->execute([
+        'action_type' => $action,
+        'user_id' => $userId,
+        'added_by' => $addedBy,
+        'details' => $details
+    ]);
         } else {
             $message = "<div class='failed-message'><p>Failed to submit the application.</p></div>";
         }
@@ -49,6 +67,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 }
 ?>
 
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -56,6 +75,9 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Add Doctor Applicant</title>
     <link rel="stylesheet" href="styles.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap" rel="stylesheet">
 </head>
 <body>
     <div class="add_container">

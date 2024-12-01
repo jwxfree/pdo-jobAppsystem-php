@@ -2,38 +2,68 @@
 session_start();
 include('core/dbConfig.php');
 
+// Check if the user is logged in
+if (!isset($_SESSION['logged_in']) || $_SESSION['logged_in'] !== true) {
+    header('Location: login.php');
+    exit;
+}
+
 if (isset($_GET['id'])) {
     $applicationId = $_GET['id'];
+    
+    // Fetch the doctor's first and last name and doctor_id for logging purposes
+    $stmt = $pdo->prepare("SELECT d.first_name, d.last_name, d.doctor_id 
+                           FROM job_applications ja 
+                           JOIN doctors d ON ja.doctor_id = d.doctor_id 
+                           WHERE ja.application_id = :application_id");
+    $stmt->execute(['application_id' => $applicationId]);
+    $applicant = $stmt->fetch();
+    
+    if ($applicant) {
+        $doctorId = $applicant['doctor_id'];
 
-    $pdo->beginTransaction();
+        // Begin a transaction to ensure atomicity
+        $pdo->beginTransaction();
 
-    try {
-        // Fetch the doctor_id associated with the application
-        $stmt = $pdo->prepare("SELECT doctor_id FROM job_applications WHERE application_id = :id");
-        $stmt->execute(['id' => $applicationId]);
-        $doctor = $stmt->fetch(PDO::FETCH_ASSOC);
+        try {
+            // Delete the job application
+            $deleteApplicationStmt = $pdo->prepare("DELETE FROM job_applications WHERE application_id = :application_id");
+            $deleteApplicationStmt->execute(['application_id' => $applicationId]);
 
-        if ($doctor) {
-            $doctorId = $doctor['doctor_id'];
+            // Delete the doctor record
+            $deleteDoctorStmt = $pdo->prepare("DELETE FROM doctors WHERE doctor_id = :doctor_id");
+            $deleteDoctorStmt->execute(['doctor_id' => $doctorId]);
 
-            // Delete from the job_applications table
-            $stmt1 = $pdo->prepare("DELETE FROM job_applications WHERE application_id = :id");
-            $stmt1->execute(['id' => $applicationId]);
+            // Log the deletion to the audit log
+            $actionType = "Deleted Applicant";
+            $addedBy = $_SESSION['username']; 
+            $userId = $_SESSION['user_id']; // Fetch the user ID from the session
+            $details = "Deleted applicant: " . $applicant['first_name'] . " " . $applicant['last_name'];
 
-            // Delete from the doctors table using the fetched doctor_id
-            $stmt2 = $pdo->prepare("DELETE FROM doctors WHERE doctor_id = :doctor_id");
-            $stmt2->execute(['doctor_id' => $doctorId]);
+            $logStmt = $pdo->prepare("INSERT INTO audit_log (action_type, user_id, added_by, details) 
+                                      VALUES (:action_type, :user_id, :added_by, :details)");
+            $logStmt->execute([
+                'action_type' => $actionType,
+                'user_id' => $userId,
+                'added_by' => $addedBy,
+                'details' => $details
+            ]);
+
+            // Commit the transaction
+            $pdo->commit();
+
+            // Redirect with success message
+            header('Location: index.php?delete_status=success');
+            exit;
+        } catch (Exception $e) {
+            // Roll back the transaction in case of error
+            $pdo->rollBack();
+            header('Location: index.php?delete_status=failure');
+            exit;
         }
-
-        // Commit the transaction
-        $pdo->commit();
-        header('Location: index.php?delete_status=success');
-    } catch (Exception $e) {
-        // Rollback the transaction on error
-        $pdo->rollBack();
+    } else {
         header('Location: index.php?delete_status=failure');
+        exit;
     }
-
-    exit();
 }
 ?>

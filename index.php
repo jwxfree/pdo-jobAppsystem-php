@@ -1,6 +1,13 @@
 <?php
 session_start();
 include('core/dbConfig.php');
+// Check if the user is logged in
+if (!isset($_SESSION['logged_in']) || $_SESSION['logged_in'] !== true) {
+    // Redirect to login page if not logged in
+    header('Location: login.php');
+    exit;
+}
+
 $deleteMessage = '';
 if (isset($_GET['delete_status'])) {
     if ($_GET['delete_status'] === 'success') {
@@ -31,6 +38,9 @@ $applicants = $stmt->fetchAll();
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Job Applicants</title>
     <link rel="stylesheet" href="styles.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap" rel="stylesheet">
 </head>
 <body>
     <div class="index_container">
@@ -45,7 +55,15 @@ $applicants = $stmt->fetchAll();
                 <button type="submit">Search</button>
             </form>
         </div>
-
+        <div class="headButtons">
+            <div class="auditBtn">
+             <a href="auditLog.php" style="color: #fff !important;">View Audit Log</a>
+            </div>
+            <div class="upperBtn">
+                <a href="logout.php" style="color: #fff !important">Logout</a>
+            </div>
+        </div>
+            
         <table>
             <thead>
                 <tr>
@@ -60,6 +78,7 @@ $applicants = $stmt->fetchAll();
                     <th>Position</th>
                     <th>Status</th>
                     <th>Actions</th>
+
                 </tr>
             </thead>
             <tbody>
